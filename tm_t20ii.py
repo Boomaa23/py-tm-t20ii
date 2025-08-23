@@ -25,18 +25,56 @@ class PrinterFlags(RTSFlags):
     WAITING_ONLINE_RECOVERY = auto()
     PAPER_FEED_BUTTON_PRESSED = auto()
 
-#TODO other status flag enums, both above and below
+
+class OfflineCauseFlags(RTSFlags):
+    COVER_OPEN = auto()
+    PAPER_FED_BY_BUTTON = auto()
+    PRINTING_STOP_PAPER_END = auto()
+    ERROR = auto()
+
+
+class ErrorCauseFlags(RTSFlags):
+    RECOVERABLE_ERROR = auto()
+    AUTOCUTTER_ERROR = auto()
+    UNRECOVERABLE_ERROR = auto()
+    AUTO_RECOVERABLE_ERROR = auto()
+
+
+class RollPaperSensorFlags(RTSFlags):
+    # Ignoring redundant bits 3 and 6
+    ROLL_PAPER_NEAR_END = 2
+    ROLL_PAPER_END = 5
+
+
+class InkFlags(RTSFlags):
+    INK_NEAR_END_DETECTED = auto()
+    INK_END_DETECTED = auto()
+    INK_NOT_DETECTED = auto()
+    CLEANING_BEING_PERFORMED = auto()
+
+
+class PeelerFlags(RTSFlags):
+    WAITING_FOR_LABEL_REMOVAL = 2
+    NO_PAPER_IN_LABEL_PEELER = 5
+
+
+class InterfaceFlags(RTSFlags):
+    PRINTING_USING_MULTIPLE_IFACES_ENABLED = 2
+
+class DMDFlags(RTSFlags):
+    DM_D_TX_STATUS_BUSY = 2
+
 
 class RTSType(Enum):
     PRINTER = RTSCommand(1, None, PrinterFlags)
-    OFFLINE_CAUSE = RTSCommand(2, None)
-    ERROR_CAUSE = RTSCommand(3, None)
-    ROLL_PAPER_SENSOR = RTSCommand(4, None)
-    INK_A = RTSCommand(7, 1)
-    INK_B = RTSCommand(7, 2)
-    PEELER = RTSCommand(8, 3)
-    INTERFACE = RTSCommand(18, 1)
-    DM_D = RTSCommand(18, 2)
+    OFFLINE_CAUSE = RTSCommand(2, None, OfflineCauseFlags)
+    ERROR_CAUSE = RTSCommand(3, None, ErrorCauseFlags)
+    ROLL_PAPER_SENSOR = RTSCommand(4, None, RollPaperSensorFlags)
+    INK_A = RTSCommand(7, 1, InkFlags)
+    INK_B = RTSCommand(7, 2, InkFlags)
+    PEELER = RTSCommand(8, 3, PeelerFlags)
+    INTERFACE = RTSCommand(18, 1, InterfaceFlags)
+    DM_D = RTSCommand(18, 2, DMDFlags)
 
 
 class Printer:

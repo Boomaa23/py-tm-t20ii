@@ -1,4 +1,43 @@
+from enum import Enum, auto
+from typing import Type
+
 import serial
+
+
+class RTSFlags(Enum):
+    _FLAG_BIT_POSITIONS = (2, 3, 5, 6)
+
+    @staticmethod
+    def _generate_next_value(name, start, count, last_values):
+        RTSFlags._FLAG_BIT_POSITIONS[len(last_values)]
+
+
+class RTSCommand:
+    def __init__(self, n: int, a: int|None, resp_flag_enum: Type[RTSFlags]):
+        self.n = n
+        self.a = a
+        self.resp_flag_enum = resp_flag_enum
+
+
+class PrinterFlags(RTSFlags):
+    DRAWER_KICK_OUT_CONNECTOR_PIN_3 = auto()
+    OFFLINE = auto()
+    WAITING_ONLINE_RECOVERY = auto()
+    PAPER_FEED_BUTTON_PRESSED = auto()
+
+#TODO other status flag enums, both above and below
+
+class RTSType(Enum):
+    PRINTER = RTSCommand(1, None, PrinterFlags)
+    OFFLINE_CAUSE = RTSCommand(2, None)
+    ERROR_CAUSE = RTSCommand(3, None)
+    ROLL_PAPER_SENSOR = RTSCommand(4, None)
+    INK_A = RTSCommand(7, 1)
+    INK_B = RTSCommand(7, 2)
+    PEELER = RTSCommand(8, 3)
+    INTERFACE = RTSCommand(18, 1)
+    DM_D = RTSCommand(18, 2)
+
 
 class Printer:
     def __init__(self, port: str, baud: int = 38400, start_connected: bool = True):
@@ -28,6 +67,9 @@ class Printer:
             self.conn = None
         return was_connected
     
+    def read(self) -> bytes|bool:
+        return self.conn.read_all() if self.is_connected() else False
+    
     def write(self, data: list[int]) -> bool:
         if not self.is_connected():
             return False
@@ -56,3 +98,14 @@ class Printer:
     def carriage_return(self) -> bool:
         """CR: Print and carriage return"""
         return self.write([13])
+    
+    def realtime_status(self, status_type: RTSType) -> list[RTSFlags]:
+        """DLE EOT: Transmit real-time status"""
+        command = [16, 4, status_type.n]
+        if status_type.a is not None:
+            command.append(status_type.a)
+        self.write(command)
+        response = self.read()
+        type_flags = status_type.value.resp_flag_enum.__members__.values()
+        response_flags = [flag for flag in type_flags if response & (1 << flag.value)]
+        return response_flags

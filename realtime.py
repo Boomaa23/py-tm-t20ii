@@ -7,7 +7,7 @@ class RTSFlags(Enum):
 
     @staticmethod
     def _generate_next_value(name, start, count, last_values):
-        RTSFlags._FLAG_BIT_POSITIONS[len(last_values)]
+        return RTSFlags._FLAG_BIT_POSITIONS[len(last_values)]
 
 
 class RTSCommand:
@@ -73,3 +73,20 @@ class RTSType(Enum):
     PEELER = RTSCommand(8, 3, PeelerFlags)
     INTERFACE = RTSCommand(18, 1, InterfaceFlags)
     DM_D = RTSCommand(18, 2, DMDFlags)
+
+
+class FromZeroEnum(Enum):
+    @staticmethod
+    def _generate_next_value_(name, start, count, last_values):
+        return count
+
+
+class RTRequest(FromZeroEnum):
+    FEED_DURING_ONLINE_RECOVERY = auto()
+    RECOVER_FROM_ERROR_AND_PRINT = auto()
+    RECOVER_FROM_ERROR_AFTER_CLEAR_BUF = auto()
+
+
+class RTPulseType(FromZeroEnum):
+    DRAWER_KICKOUT_CONNECTOR_PIN_2 = auto()
+    DRAWER_KICKOUT_CONNECTOR_PIN_5 = auto()
